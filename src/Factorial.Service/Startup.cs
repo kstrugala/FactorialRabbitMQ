@@ -10,6 +10,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RawRabbit;
+using RawRabbit.vNext;
+using RawRabbit.Configuration;
+using RawRabbit.Instantiation;
+using RawRabbit.Pipe;
+using System.Reflection;
+using Factorial.Messages.Commands;
+using Factorial.Service.Handlers;
 
 namespace Factorial.Service
 {
@@ -26,6 +34,8 @@ namespace Factorial.Service
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            ConfigureRabbitMq(services, Configuration.GetSection("rabbitmq"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,8 +51,47 @@ namespace Factorial.Service
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
             app.UseMvc();
+
+            ConfigureRabbitMqSubscriptions(app);
         }
+
+        private void ConfigureRabbitMqSubscriptions(IApplicationBuilder app)
+        {
+            IBusClient client = app.ApplicationServices.GetService<IBusClient>();
+
+            var handler = app.ApplicationServices.GetService<ICommandHandler<CalculateFactorial>>();
+
+            client.SubscribeAsync<CalculateFactorial>(
+                msg => handler.HandleAsync(msg),
+                ctx => ctx.UseSubscribeConfiguration(
+                    cfg => cfg.FromDeclaredQueue(
+                        q => q.WithName(GetExchangeName<CalculateFactorial>())
+                    )
+                )
+            );
+
+        } 
+
+        private void ConfigureRabbitMq(IServiceCollection services, IConfigurationSection section)
+        {
+            var options = new RawRabbitConfiguration();
+            section.Bind(options);
+
+            var client = RawRabbitFactory.CreateSingleton(new RawRabbitOptions
+            {
+                ClientConfiguration = options
+            });
+
+            services.AddSingleton<IBusClient>(_=>client);
+            services.AddSingleton<IFactorialCalculator>(_=> new Factorial());
+            services.AddTransient<ICommandHandler<CalculateFactorial>, CalculateFactorialHandler>();
+        }
+
+        private static string GetExchangeName<T>(string name = null)
+            => string.IsNullOrWhiteSpace(name)
+                ? $"{Assembly.GetEntryAssembly().GetName()}/{typeof(T).Name}"
+                : $"{name}/{typeof(T).Name}";
+
     }
 }

@@ -4,11 +4,11 @@ namespace Factorial.Api.Repository
 {
     public class InMemoryRepository : IRepository
     {
-        private readonly Dictionary<int, int> _results = new Dictionary<int, int>();
+        private readonly Dictionary<int, ulong> _results = new Dictionary<int, ulong>();
 
-        public int? Get(int n)
+        public ulong? Get(int n)
         {
-            int result;
+            ulong result;
             if(_results.TryGetValue(n, out result))
             {
                 return result;
@@ -16,7 +16,7 @@ namespace Factorial.Api.Repository
             return null;
         }
 
-        public void Insert(int n, int result)
+        public void Insert(int n, ulong result)
         {
             _results[n] = result;
         }

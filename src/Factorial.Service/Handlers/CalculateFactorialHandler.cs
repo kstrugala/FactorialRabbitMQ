@@ -18,7 +18,7 @@ namespace Factorial.Service.Handlers
 
         public async Task HandleAsync(CalculateFactorial command)
         {
-            int result = _factorialCalculator.FactorialCalculator(command.Number);
+            ulong result = _factorialCalculator.FactorialCalculator(command.Number);
 
             await _client.PublishAsync(new FactorialCalculated{
                 n = command.Number,

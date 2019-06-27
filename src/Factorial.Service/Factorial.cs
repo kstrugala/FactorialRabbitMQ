@@ -2,12 +2,12 @@ namespace Factorial.Service
 {
     public class Factorial : IFactorialCalculator
     {
-        public int FactorialCalculator(int n)
+        public ulong FactorialCalculator(int n)
         {
             if(n==0) 
                 return 1;
             else
-                return n*FactorialCalculator(n-1);
+                return (ulong)n*FactorialCalculator(n-1);
         }
     }
 }

@@ -2,6 +2,6 @@ namespace Factorial.Service
 {
     public interface IFactorialCalculator
     {
-         int FactorialCalculator(int n);
+         ulong FactorialCalculator(int n);
     }
 }

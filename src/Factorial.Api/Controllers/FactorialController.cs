@@ -25,7 +25,7 @@ namespace Factorial.Api.Controllers
         [HttpGet("{n}")]
         public IActionResult Get(int n)
         {
-            int? result = _repository.Get(n);
+            ulong? result = _repository.Get(n);
 
             if(result.HasValue)
             {
@@ -38,7 +38,7 @@ namespace Factorial.Api.Controllers
         [HttpPost("{n}")]
         public async Task<IActionResult> Post(int n)
         {
-            int? result = _repository.Get(n);
+            ulong? result = _repository.Get(n);
 
             if(!result.HasValue)
             {
